@@ -15,7 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
@@ -28,7 +27,10 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import static rc.so.accreditamento.MainSelector.estraiEccezione;
 import static rc.so.accreditamento.MainSelector.formatAL;
+import static rc.so.accreditamento.MainSelector.log;
+import static rc.so.accreditamento.MainSelector.rb;
 
 /**
  *
@@ -36,7 +38,6 @@ import static rc.so.accreditamento.MainSelector.formatAL;
  */
 public class Db_Bando {
 
-    private static final ResourceBundle rb = ResourceBundle.getBundle("conf.conf");
     private Connection c = null;
 
     private String namedb = null;
@@ -61,7 +62,7 @@ public class Db_Bando {
             p.put("zeroDateTimeBehavior", "convertToNull");
             this.c = DriverManager.getConnection("jdbc:mysql://" + host, p);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.severe(estraiEccezione(ex));
             if (this.c != null) {
                 try {
                     this.c.close();
@@ -77,13 +78,8 @@ public class Db_Bando {
             if (c != null) {
                 this.c.close();
             }
-        } catch (SQLException ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+        } catch (Exception ex) {
+            log.severe(estraiEccezione(ex));
         }
     }
 
@@ -91,12 +87,7 @@ public class Db_Bando {
         try {
             this.c = conn;
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+            log.severe(estraiEccezione(ex));
         }
     }
 
@@ -118,12 +109,7 @@ public class Db_Bando {
                 }
             }
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+            log.severe(estraiEccezione(ex));
         }
         return al;
     }
@@ -140,7 +126,6 @@ public class Db_Bando {
                 String campo = rs.getString("campo");
                 dc.setCodbando("BA0F6");
                 dc.setUsername(username);
-                System.out.println(rs.getString("valore") + " - " + rs.getString("campo"));
                 if (campo.equals("accreditato")) {
                     dc.setAccreditato(rs.getString("valore"));
                 }
@@ -215,12 +200,7 @@ public class Db_Bando {
                 dc.setDataconsegna(valoriDomandaCompleta[1]);
             }
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+            log.severe(estraiEccezione(ex));
         }
         return dc;
     }
@@ -237,18 +217,13 @@ public class Db_Bando {
                 valori[1] = rs.getString("timestamp");
             }
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+            log.severe(estraiEccezione(ex));
         }
         return valori;
     }
 
     public boolean insertBandoH8(DomandeComplete dc) {
-        String query = "insert into "+namedb+" (codbando,username,nome,cognome,nato_a,data,carica,societa,sedecomune,sedeprovincia,sedeindirizzo,sedecap,cf,pivacf,cciaacomune,cciaaprovincia,rea,matricolainps,pec,mail,idoneo,cellulare,tipdoc,docric,coddomanda,dataconsegna,accreditato) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        String query = "insert into " + namedb + " (codbando,username,nome,cognome,nato_a,data,carica,societa,sedecomune,sedeprovincia,sedeindirizzo,sedecap,cf,pivacf,cciaacomune,cciaaprovincia,rea,matricolainps,pec,mail,idoneo,cellulare,tipdoc,docric,coddomanda,dataconsegna,accreditato) value (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try {
             PreparedStatement ps = this.c.prepareStatement(query, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             ps.setString(1, dc.getCodbando());
@@ -276,20 +251,14 @@ public class Db_Bando {
             ps.setString(23, dc.getTipdoc());
             ps.setString(24, dc.getDocric());
             ps.setString(25, dc.getCoddomanda());
-            System.out.println(dc.getDataconsegna().replace(".0", ""));
             ps.setString(26, dc.getDataconsegna().replace(".0", ""));
             ps.setString(27, dc.getAccreditato());
             int x = ps.executeUpdate();
             return (x > 0);
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
-            return false;
+            log.severe(estraiEccezione(ex));
         }
+        return false;
     }
 
     public ArrayList<String[]> getDescDocumenti() {
@@ -303,12 +272,7 @@ public class Db_Bando {
                 val.add(v1);
             }
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
+            log.severe(estraiEccezione(ex));
         }
         return val;
     }
@@ -316,7 +280,7 @@ public class Db_Bando {
     public void expexcel_completo() {
         ArrayList<String[]> documenti = getDescDocumenti();
         try {
-            String sql = "SELECT * FROM "+namedb+" where coddomanda <> '-' order by dataconsegna";
+            String sql = "SELECT * FROM " + namedb + " where coddomanda <> '-' order by dataconsegna";
             XSSFWorkbook workbook;
             File xl;
             try ( PreparedStatement ps = this.c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);  ResultSet rs = ps.executeQuery()) {
@@ -522,13 +486,7 @@ public class Db_Bando {
             FileUtils.writeByteArrayToFile(new File(getPath("path.result.excel")), FileUtils.readFileToByteArray(xl));
 
         } catch (Exception ex) {
-            System.err.println("METHOD: " + new Object() {
-            }
-                    .getClass()
-                    .getEnclosingMethod()
-                    .getName());
-            System.err.println("ERROR: " + ExceptionUtils.getStackTrace(ex));
-//            return null;
+            log.severe(estraiEccezione(ex));
         }
     }
 
@@ -544,7 +502,7 @@ public class Db_Bando {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.severe(estraiEccezione(ex));
         }
         return "-";
     }
